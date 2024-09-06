@@ -16,18 +16,14 @@ export default function Login() {
     e.preventDefault()
     setIsLoading(true)
     setMessage({ type: '', content: '' })
-
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, { username, password })
       setMessage({ type: 'success', content: 'Login successful! Redirecting...' })
       localStorage.setItem('token', response.data.token)
       setTimeout(() => router.push('/dashboard'), 2000)
     } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setMessage({ type: 'error', content: 'Invalid credentials. Please try again or register.' })
-      } else {
-        setMessage({ type: 'error', content: 'An error occurred. Please try again.' })
-      }
+      console.error('Login failed', error)
+      setMessage({ type: 'error', content: 'Login failed. Please check your credentials and try again.' })
     } finally {
       setIsLoading(false)
     }
@@ -51,7 +47,7 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm shadow-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-950"
               required
             />
           </div>
@@ -63,7 +59,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm shadow-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-950"
               required
             />
           </div>
