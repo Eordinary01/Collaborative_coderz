@@ -61,6 +61,45 @@ router.post('/run/:id', auth, async (req, res) => {
         });
     }
 });
+router.post('/run', auth, async (req, res) => {
+    try {
+        const { content, language } = req.body;
+        if (!content || !language) {
+            return res.status(400).send({ error: 'Code content and language are required' });
+        }
+
+        const fileExtension = getFileExtension(language);
+        const tempFile = path.join(__dirname, `temp_${Date.now()}.${fileExtension}`);
+
+        await fs.writeFile(tempFile, content);
+
+        const command = getExecutionCommand(language, tempFile);
+
+        exec(command, async (error, stdout, stderr) => {
+            try {
+                await fs.unlink(tempFile);  // Delete the temporary file
+            } catch (unlinkError) {
+                console.error('Error deleting temp file:', unlinkError);
+            }
+
+            if (error) {
+                return res.status(500).send({ 
+                    error: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+            }
+            res.send({ output: stdout });
+        });
+    } catch (error) {
+        console.error('Route error:', error);
+        res.status(500).send({
+            error: error.message,
+            code: error.code,
+            stack: error.stack
+        });
+    }
+});
 
 function getFileExtension(language) {
     switch (language.toLowerCase()) {
