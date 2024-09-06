@@ -82,6 +82,8 @@ export default function NewCode() {
                 <option value="html">HTML</option>
                 <option value="css">CSS</option>
                 <option value="typescript">TypeScript</option>
+                <option value="c">C</option>
+                <option value="cpp">C++</option>
               </select>
             </div>
           </div>

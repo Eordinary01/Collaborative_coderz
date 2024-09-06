@@ -28,14 +28,14 @@ router.post('/run/:id', auth, async (req, res) => {
 
         console.log('Script content:', scriptContent);
 
-        const tempFile = path.join(__dirname, `temp_${req.params.id}.js`);
+        const fileExtension = getFileExtension(code.language);
+        const tempFile = path.join(__dirname, `temp_${req.params.id}.${fileExtension}`);
 
         await fs.writeFile(tempFile, scriptContent);
 
-        // Escape the file path
-        const escapedTempFile = tempFile.replace(/\\/g, '\\\\');
+        const command = getExecutionCommand(code.language, tempFile);
 
-        exec(`node "${escapedTempFile}"`, async (error, stdout, stderr) => {
+        exec(command, async (error, stdout, stderr) => {
             try {
                 await fs.unlink(tempFile);  // Delete the temporary file
             } catch (unlinkError) {
@@ -61,6 +61,34 @@ router.post('/run/:id', auth, async (req, res) => {
         });
     }
 });
+
+function getFileExtension(language) {
+    switch (language.toLowerCase()) {
+        case 'javascript': return 'js';
+        case 'python': return 'py';
+        case 'c': return 'c';
+        case 'cpp': return 'cpp';
+        default: return 'txt';
+    }
+}
+
+function getExecutionCommand(language, filePath) {
+    const escapedFilePath = filePath.replace(/\\/g, '\\\\');
+    switch (language.toLowerCase()) {
+        case 'javascript':
+            return `node "${escapedFilePath}"`;
+        case 'python':
+            return `python "${escapedFilePath}"`;
+        case 'c':
+            const outputFile = escapedFilePath.replace(/\.c$/, '');
+            return `gcc "${escapedFilePath}" -o "${outputFile}" && "${outputFile}"`;
+        case 'cpp':
+            const outputFileCpp = escapedFilePath.replace(/\.cpp$/, '');
+            return `g++ "${escapedFilePath}" -o "${outputFileCpp}" && "${outputFileCpp}"`;
+        default:
+            throw new Error(`Unsupported language: ${language}`);
+    }
+}
 
 
 
